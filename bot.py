@@ -236,7 +236,7 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
             chart_buf.seek(0)
             photo_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
             files = {'photo': ('chart.png', chart_buf, 'image/png')}
-            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next  Signal In 5 Sec : {clean_name}"}
+            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next Signal In 3 Sec : {clean_name}"}
             photo_response = requests.post(photo_url, data=data, files=files)
             if photo_response.json().get('ok'):
                 print(f"Chart sent for {coin_name}")
