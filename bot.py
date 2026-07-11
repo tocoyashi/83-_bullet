@@ -35,7 +35,7 @@ SYMBOLS = [
 # Exit: 50% TP1 / 30% TP2 / 20% TP3
 # After TP1 hit: Move SL to entry + 0.2% (breakeven+)
 # Volume threshold: 4x average (improved from 2.5x)
-# Backtest (90 days, 22 coins): WR 86.6% | PnL +701% | PF 1.65
+# Backtest (90 days, 22 coins): WR 86.6% | PnL +701% | PF 2.12
 # ────────────────────────────────────────────────────────────────────
 
 TP1_PCT = 0.012   # +1.2%
@@ -236,7 +236,7 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
             chart_buf.seek(0)
             photo_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
             files = {'photo': ('chart.png', chart_buf, 'image/png')}
-            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next Signal In 3 Sec : {clean_name}"}
+            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next  Signal In 5 Sec : {clean_name}"}
             photo_response = requests.post(photo_url, data=data, files=files)
             if photo_response.json().get('ok'):
                 print(f"Chart sent for {coin_name}")
