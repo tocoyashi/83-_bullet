@@ -215,19 +215,19 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
     zone_high = round(entry * 1.0015, get_decimals(entry))
 
     text = (
-        f"📌 Signal Strategy : {strategy}\n"
-        f"➕ #{clean_name} 4H\n"
-        f"➕ {direction_text} Entry Zone: {zone_low} - {zone_high} {arrow}\n"
-        f"➕ Leverage: {LEVERAGE}\n\n"
-        f"📌 Strategy Details:\n"
-        f"➕ TP 1: {tp1}\n"
-        f"➕ TP 2: {tp2}\n"
-        f"➕ TP 3: {tp3}\n\n"
-        f"🔻 Stop-Loss: {sl}\n"
-        f"🔻 After TP1 move SL to Entry + 0.2%\n"
-        f"🔻 Exit: 50% TP1 / 30% TP2 / 20% TP3\n\n"
+        f"⬛️ Signal Strategy : {strategy}\n"
+        f"🟥 #{clean_name} 4H\n"
+        f"🟧 {direction_text} Entry Zone: {zone_low} - {zone_high} {arrow}\n"
+        f"🟨 Leverage: {LEVERAGE}\n\n"
+        f"⬜️ Strategy Details:\n"
+        f"🟨 TP 1: {tp1}\n"
+        f"🟧 TP 2: {tp2}\n"
+        f"⬛️ TP 3: {tp3}\n\n"
+        f"🔻  Stop-Loss: {sl}\n"
+        f"▫️ After TP1 move SL to Entry + 0.2%\n"
+        f"▪️ Exit: 50% TP1 / 30% TP2 / 20% TP3\n\n"
         f"———————————\n\n"
-        f"Bulls Signals Analysis ✂️ :\n"
+        f"©️ Bulls Signals Analysis  :\n"
         f"{summary_text}"
     )
 
