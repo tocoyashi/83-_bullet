@@ -206,6 +206,13 @@ def generate_summary(direction, strategy, df, tp1, tp3, sl):
     return summary, structure_txt
 
 
+def strength_bar(score):
+    filled = max(1, min(5, round(score / 20)))
+    colors = ['\U0001f7e5', '\U0001f7e7', '\U0001f7e8', '\U0001f7e9', '\U0001f7e9']
+    empty = '\u2b1c\ufe0f'
+    return ''.join(colors[i] for i in range(filled)) + empty * (5 - filled)
+
+
 def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl, summary_text, chart_buf=None, strength=0, chart_summary_line=""):
     direction_text = "Long" if direction.lower() == "long" else "Short"
     clean_name = coin_name.replace("/", "")
@@ -217,7 +224,7 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
     text = (
         f"⬛️ Signal Strategy : {strategy}\n"
         f"🟥 #{clean_name} 4H\n"
-        f"🟧 {direction_text} Entry Zone: {zone_low} - {zone_high} {arrow}\n"
+        f"🟧 {arrow} {direction_text} : {zone_low} - {zone_high}\n"
         f"🟨 Leverage: {LEVERAGE}\n\n"
         f"⬜️ Strategy Details:\n"
         f"🟨 TP 1: {tp1}\n"
@@ -236,7 +243,7 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
             chart_buf.seek(0)
             photo_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
             files = {'photo': ('chart.png', chart_buf, 'image/png')}
-            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next Signal In 3 Sec : {clean_name}\n{chart_summary_line}\nSignal Strength: {strength:.1f}/100"}
+            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next Signal In 3 Sec : {clean_name}\n{chart_summary_line}\nStrength: {strength_bar(strength)} {strength:.1f}/100"}
             photo_response = requests.post(photo_url, data=data, files=files)
             if photo_response.json().get('ok'):
                 print(f"Chart sent for {coin_name}")
