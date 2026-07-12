@@ -202,11 +202,11 @@ def generate_summary(direction, strategy, df, tp1, tp3, sl):
             "Risk/Reward ratio is highly favorable here; expecting a steady decline to hit the projected levels."
         ])
 
-    summary = f"{structure_txt} {action_txt} {rsi_txt} {levels_txt}"
-    return summary
+    summary = f"{action_txt} {rsi_txt} {levels_txt}"
+    return summary, structure_txt
 
 
-def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl, summary_text, chart_buf=None):
+def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl, summary_text, chart_buf=None, strength=0, chart_summary_line=""):
     direction_text = "Long" if direction.lower() == "long" else "Short"
     clean_name = coin_name.replace("/", "")
     arrow = "⇈" if direction.lower() == "long" else "⇊"
@@ -236,7 +236,7 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
             chart_buf.seek(0)
             photo_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto"
             files = {'photo': ('chart.png', chart_buf, 'image/png')}
-            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next  Signal In 5 Sec : {clean_name}"}
+            data = {"chat_id": CHANNEL_ID, "caption": f"✅ Next Signal In 3 Sec : {clean_name}\n{chart_summary_line}\nSignal Strength: {strength:.1f}/100"}
             photo_response = requests.post(photo_url, data=data, files=files)
             if photo_response.json().get('ok'):
                 print(f"Chart sent for {coin_name}")
@@ -385,7 +385,7 @@ def analyze_and_trade():
 
     for sig in top_signals:
         chart = generate_chart(sig['df'], sig['symbol'], sig['direction'], sig['entry'], sig['tps'][0], sig['tps'][2], sig['sl'])
-        summary = generate_summary(sig['direction'], sig['strategy'], sig['df'], sig['tps'][0], sig['tps'][2], sig['sl'])
+        summary, structure_line = generate_summary(sig['direction'], sig['strategy'], sig['df'], sig['tps'][0], sig['tps'][2], sig['sl'])
         send_crypto_signal(
             sig['symbol'],
             sig['direction'],
@@ -396,7 +396,9 @@ def analyze_and_trade():
             sig['tps'][2],
             sig['sl'],
             summary,
-            chart
+            chart,
+            strength=sig['strength'],
+            chart_summary_line=structure_line
         )
         time.sleep(6)
 
