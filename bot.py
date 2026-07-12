@@ -218,8 +218,8 @@ def send_crypto_signal(coin_name, direction, strategy, entry, tp1, tp2, tp3, sl,
     clean_name = coin_name.replace("/", "")
     arrow = "⇈" if direction.lower() == "long" else "⇊"
 
-    zone_low = round(entry * 0.9985, get_decimals(entry))
-    zone_high = round(entry * 1.0015, get_decimals(entry))
+    zone_low = round(entry * 0.997, get_decimals(entry))
+    zone_high = round(entry * 1.003, get_decimals(entry))
 
     text = (
         f"⬛️ Signal Strategy : {strategy}\n"
