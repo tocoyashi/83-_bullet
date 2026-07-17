@@ -21,14 +21,7 @@ CHANNEL_ID = os.environ.get("CHANNEL_ID")
 
 TIMEFRAME = "4h"
 LEVERAGE = "10x"
-
-SYMBOLS = [
-    "BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "XRP/USDT",
-    "ADA/USDT", "DOGE/USDT", "MATIC/USDT", "AVAX/USDT", "LINK/USDT",
-    "LTC/USDT", "UNI/USDT",
-    "ATOM/USDT", "XLM/USDT", "NEAR/USDT", "APT/USDT", "AAVE/USDT",
-    "INJ/USDT", "ARB/USDT", "OP/USDT", "FIL/USDT", "FET/USDT"
-]
+TOP_N = 15
 
 # ─── v5 Optimized Settings ─────────────────────────────────────────
 # TP: +1.2% / +3% / +5%  |  SL: -5%
@@ -44,15 +37,68 @@ TP3_PCT = 0.050   # +5.0%
 SL_PCT  = 0.050   # -5.0%
 VOL_THRESHOLD = 4.0
 
+# ─── Excluded Coins ────────────────────────────────────────────────
+# These coins will NEVER appear in signals even if they rank top
+EXCLUDED_COINS = {
+    # Stablecoins
+    'USDC', 'BUSD', 'TUSD', 'DAI', 'FDUSD', 'USDP',
+    # Wrapped tokens
+    'WBTC', 'WETH', 'STETH', 'WEETH',
+    # Leveraged tokens
+    'UP', 'DOWN', 'BULL', 'BEAR',
+    # User-requested exclusions
+    'GOLD', 'USDE', 'USD1',
+}
+
+# ─── Fallback List ────────────────────────────────────────────────
+# Used only if the API call to fetch tickers fails
+FALLBACK_SYMBOLS = [
+    "BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "XRP/USDT",
+    "ADA/USDT", "DOGE/USDT", "TRX/USDT", "AVAX/USDT", "LINK/USDT",
+    "LTC/USDT", "UNI/USDT", "ATOM/USDT", "XLM/USDT", "NEAR/USDT"
+]
+
+
+def get_top_symbols(exchange, top_n=TOP_N):
+    """Fetch top N USDT pairs by 24h quote volume from MEXC, excluding unwanted coins."""
+    print(f"📊 Fetching top {top_n} coins by 24h volume from MEXC...")
+    try:
+        tickers = exchange.fetch_tickers()
+        usdt_pairs = []
+
+        for symbol, ticker in tickers.items():
+            if not symbol.endswith('/USDT'):
+                continue
+            base = symbol.split('/')[0]
+            if base in EXCLUDED_COINS:
+                continue
+
+            quote_vol = ticker.get('quoteVolume', 0) or 0
+            usdt_pairs.append({
+                'symbol': symbol,
+                'quote_volume': quote_vol
+            })
+
+        usdt_pairs.sort(key=lambda x: x['quote_volume'], reverse=True)
+        top = [p['symbol'] for p in usdt_pairs[:top_n]]
+
+        print(f"✅ Top {top_n}: {top}")
+        return top
+
+    except Exception as e:
+        print(f"⚠️ Error fetching tickers, using fallback list: {e}")
+        return FALLBACK_SYMBOLS
+
 
 def get_decimals(price):
-    if price > 100: return 2
-    elif price > 1: return 3
-    elif price > 0.01: return 5
-    else: return 8
-
-
-
+    if price > 100:
+        return 2
+    elif price > 1:
+        return 3
+    elif price > 0.01:
+        return 5
+    else:
+        return 8
 
 
 def generate_chart(df, symbol, direction, entry, tp1, tp3, sl):
@@ -271,6 +317,9 @@ def analyze_and_trade():
     print("Collecting all signals first, then filtering TOP 3...")
     exchange = ccxt.mexc()
 
+    # ─── Dynamic Top 15 Coins ──────────────────────────────────────
+    SYMBOLS = get_top_symbols(exchange, top_n=TOP_N)
+
     all_signals = []
 
     for symbol in SYMBOLS:
@@ -291,16 +340,15 @@ def analyze_and_trade():
             entry = round(current_close, decimals)
 
             # ─── v5 TP/SL: +1.2% / +3% / +5% | SL: -5% ───────────
-            if True:  # unified for all strategies
-                long_tp1 = round(entry * (1 + TP1_PCT), decimals)
-                long_tp2 = round(entry * (1 + TP2_PCT), decimals)
-                long_tp3 = round(entry * (1 + TP3_PCT), decimals)
-                long_sl  = round(entry * (1 - SL_PCT), decimals)
+            long_tp1 = round(entry * (1 + TP1_PCT), decimals)
+            long_tp2 = round(entry * (1 + TP2_PCT), decimals)
+            long_tp3 = round(entry * (1 + TP3_PCT), decimals)
+            long_sl  = round(entry * (1 - SL_PCT), decimals)
 
-                short_tp1 = round(entry * (1 - TP1_PCT), decimals)
-                short_tp2 = round(entry * (1 - TP2_PCT), decimals)
-                short_tp3 = round(entry * (1 - TP3_PCT), decimals)
-                short_sl  = round(entry * (1 + SL_PCT), decimals)
+            short_tp1 = round(entry * (1 - TP1_PCT), decimals)
+            short_tp2 = round(entry * (1 - TP2_PCT), decimals)
+            short_tp3 = round(entry * (1 - TP3_PCT), decimals)
+            short_sl  = round(entry * (1 + SL_PCT), decimals)
 
             # ─── Strategy 1: Swing Pullback ────────────────────────
             pullback_buy = (df['ema_50'].iloc[-1] > df['ema_200'].iloc[-1]) and \
